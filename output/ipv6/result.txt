@@ -1,5 +1,5 @@
 🕘️更新时间,#genre#
-2025-12-15 18:36:37,http://php.jdshipin.com/TVOD/iptv.php?id=rthk33
+2025-12-16 06:29:02,http://php.jdshipin.com/TVOD/iptv.php?id=rthk33
 
 📺央视频道,#genre#
 CCTV-1,http://php.jdshipin.com/TVOD/iptv.php?id=rthk33
@@ -92,6 +92,11 @@ CETV-1,https://migu.188766.xyz/?migutoken=0984af71cf2fe2fe290e3c00af48b8e9&id=CE
 CETV-1,https://migu.188766.xyz/?migutoken=b5498f1bd7f3dacba8954cfcfddea84d&id=CETV1&type=yy
 CETV-2,https://migu.188766.xyz/?migutoken=45567d922fd1a112e2c5d2d5ca3b05ba&id=CETV2&type=yy
 CETV-2,https://migu.188766.xyz/?migutoken=0d8d4767f9262a4b41668144f85c7428&id=CETV2&type=yy
+CETV-3,http://[2409:8087:7004:20:1000::22]:6610/yinhe/2/ch00000090990000001309/index.m3u8
+CETV-3,http://[2409:8087:8:21::18]:6610/otttv.bj.chinamobile.com/PLTV/88888888/224/3221226577/1.m3u8?GuardEncType=2&accountinfo=%7E%7EV2.0%7EhE2Z89HKgsQOlN9opVn1iw%7E_eNUbgU9sJGUcVVduOMKhafLvQUgE_zlz_7pvDimJNN03yUnk4zBVk1bynPPL3hZ%2CEND
+CETV-3,http://rrs01.hw.gmcc.net:8088/PLTV/81/224/3221226722/1.m3u8
+CETV-3,http://iptv.cdn.ha.chinamobile.com/PLTV/88888888/224/3221227352/index.m3u8
+CETV-3,http://ott.mobaibox.com/PLTV/3/224/3221227018/index.m3u8
 CETV-4,https://migu.188766.xyz/?migutoken=9a37f8fd55d9a939aa1c3a85e0e4a080&id=CETV4&type=yy
 CETV-4,http://[2409:8087:1e01:23::10]:8112/000000001000/5000000006000012123/1.m3u8?channel-id=bestzb&Contentid=5000000006000012123&livemode=1&stbId=m
 CETV-4,http://[2409:8087:1e01:23::10]:8112/000000001000/5000000011000031126/1.m3u8?channel-id=bestzb&Contentid=5000000011000031126&livemode=1&stbId=m
