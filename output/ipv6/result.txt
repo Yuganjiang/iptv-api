@@ -1,5 +1,5 @@
 🕘️更新时间,#genre#
-2025-12-18 06:27:51,http://php.jdshipin.com/TVOD/iptv.php?id=rthk33
+2025-12-18 18:31:42,http://php.jdshipin.com/TVOD/iptv.php?id=rthk33
 
 📺央视频道,#genre#
 CCTV-1,http://php.jdshipin.com/TVOD/iptv.php?id=rthk33
@@ -98,6 +98,7 @@ CETV-2,https://migu.188766.xyz/?migutoken=45567d922fd1a112e2c5d2d5ca3b05ba&id=CE
 CETV-2,https://migu.188766.xyz/?migutoken=0d8d4767f9262a4b41668144f85c7428&id=CETV2&type=yy
 CETV-2,https://migu.188766.xyz/?migutoken=0820061fd48dd4f35c1d05bcca9507f4&id=CETV2&type=yy
 CETV-2,https://migu.188766.xyz/?migutoken=8de5665d629c3670df929cb410e0204e&id=CETV2&type=yy
+CETV-2,https://migu.188766.xyz/?migutoken=099178979902b11fa0226f898327ce8c&id=CETV2&type=yy
 CETV-3,http://[2409:8087:7004:20:1000::22]:6610/yinhe/2/ch00000090990000001309/index.m3u8
 CETV-3,http://[2409:8087:8:21::18]:6610/otttv.bj.chinamobile.com/PLTV/88888888/224/3221226577/1.m3u8?GuardEncType=2&accountinfo=%7E%7EV2.0%7EhE2Z89HKgsQOlN9opVn1iw%7E_eNUbgU9sJGUcVVduOMKhafLvQUgE_zlz_7pvDimJNN03yUnk4zBVk1bynPPL3hZ%2CEND
 CETV-3,http://rrs01.hw.gmcc.net:8088/PLTV/81/224/3221226722/1.m3u8
@@ -206,6 +207,7 @@ CETV-4,https://migu.188766.xyz/?migutoken=fd476b98e90ad8e01097820c0432bb18&id=CE
 三沙卫视,https://migu.188766.xyz/?migutoken=e978ad3bef861df267f77dd63a715c2d&id=hn_ssws&type=sz
 三沙卫视,https://migu.188766.xyz/?migutoken=e64b5591133b1f7de853de97939d66fe&id=hn_ssws&type=sz
 三沙卫视,https://migu.188766.xyz/?migutoken=c2b1268d710b144a997676175ebf4ef6&id=hn_ssws&type=sz
+三沙卫视,https://migu.188766.xyz/?migutoken=0f74d62b9ac70c2429e45301e3ba5d7c&id=hn_ssws&type=sz
 天津卫视,https://iptv.catvod.com/live.php?id=%E5%A4%A9%E6%B4%A5%E5%8D%AB%E8%A7%86%E5%8F%B0
 西藏卫视,http://php.jdshipin.com:8880/xztv.php?id=ws
 西藏卫视,http://php.jdshipin.com/xztv.php?id=ws
