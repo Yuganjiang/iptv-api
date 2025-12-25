@@ -1,5 +1,5 @@
 🕘️更新时间,#genre#
-2025-12-25 06:27:40,http://php.jdshipin.com/TVOD/iptv.php?id=rthk33
+2025-12-25 18:30:21,http://php.jdshipin.com/TVOD/iptv.php?id=rthk33
 
 📺央视频道,#genre#
 CCTV-1,http://php.jdshipin.com/TVOD/iptv.php?id=rthk33
@@ -202,6 +202,7 @@ CETV-4,https://migu.188766.xyz/?migutoken=fd476b98e90ad8e01097820c0432bb18&id=CE
 陕西卫视,https://www.freetv.top/migu/738910838.m3u8?migutoken=7a2ceb1f61adc2c6d6dd1c53cd296e5f6a0051a6d1feeca78950e85d307caa9edd71e4c150c3c44b3f5465612befd2294c38f49ce94c3a42b166683c48422cfecb24f5888d679c6511ca220f9e
 陕西卫视,https://www.freetv.top/migu/738910838.m3u8?migutoken=1aef50c89c9468d94677a906c3332de851f93ccdc0dab306ff82f6cf8dc0185feb0e0bd07a3fe73460155d5559750dd6fbd183dbf1005cf1c795d2257e6e73dfa1833fa9dcd8b3ce51f46b94ac
 四川卫视,https://iptv.catvod.com/live.php?id=%E5%9B%9B%E5%B7%9D%E5%8D%AB%E8%A7%86%E5%8F%B0
+四川卫视,https://iptv.catvod.com/live.php?id=%E5%9B%9B%E5%B7%9D%E5%8D%AB%E8%A7%864K%E5%8F%B0
 深圳卫视,https://iptv.catvod.com/live.php?id=%E6%B7%B1%E5%9C%B3%E5%8D%AB%E8%A7%86%E5%8F%B0
 三沙卫视,https://migu.188766.xyz/?migutoken=e2a58cd79de33e7c6ecbae573d83624f&id=hn_ssws&type=sz
 三沙卫视,https://migu.188766.xyz/?migutoken=e978ad3bef861df267f77dd63a715c2d&id=hn_ssws&type=sz
