@@ -7,7 +7,7 @@ from typing import Any, Dict, Optional, Set, Tuple
 import utils.constants as constants
 from utils.channel import sort_channel_result, generate_channel_statistic, write_channel_to_file, retain_origin
 from utils.config import config
-from utils.tools import get_logger
+from utils.tools import get_logger, close_logger_handlers
 
 
 class ResultAggregator:
@@ -20,10 +20,9 @@ class ResultAggregator:
             base_data: Dict[str, Dict[str, Any]],
             first_channel_name: Optional[str] = None,
             ipv6_support: bool = True,
-            write_interval: float = 2.0,
-            min_items_before_flush: int = 1,
+            write_interval: float = 5.0,
+            min_items_before_flush: int = config.urls_limit,
             flush_debounce: Optional[float] = None,
-            sort_logger=None,
             stat_logger=None,
             result: Optional[Dict[str, Dict[str, list]]] = None,
     ):
@@ -38,93 +37,72 @@ class ResultAggregator:
         self._dirty_count = 0
         self._stopped = True
         self._task: Optional[asyncio.Task] = None
+        self.realtime_write = config.open_realtime_write
         self.write_interval = write_interval
         self.first_channel_name = first_channel_name
         self.ipv6_support = ipv6_support
-        self.sort_logger = sort_logger or get_logger(constants.result_log_path, level=INFO, init=True)
         self.stat_logger = stat_logger or get_logger(constants.statistic_log_path, level=INFO, init=True)
         self.is_last = False
         self._lock = asyncio.Lock()
+        self._write_lock = asyncio.Lock()
         self._min_items_before_flush = min_items_before_flush
         self.flush_debounce = flush_debounce if flush_debounce is not None else max(0.2, write_interval / 2)
         self._flush_event = asyncio.Event()
-        self._debounce_task: Optional[asyncio.Task] = None
         self._pending_channels: Set[Tuple[str, str]] = set()
         self._finished_channels: Set[Tuple[str, str]] = set()
 
-    def _ensure_debounce_task_in_loop(self, loop: asyncio.AbstractEventLoop) -> None:
-        """
-        Ensure the debounce task is running in the specified event loop.
-        """
-        if not self._debounce_task or self._debounce_task.done():
-            try:
-                self._debounce_task = loop.create_task(self._debounce_loop())
-            except Exception:
-                try:
-                    loop.call_soon_threadsafe(self._create_debounce_task_threadsafe)
-                except Exception:
-                    pass
-
-    def _create_debounce_task_threadsafe(self) -> None:
-        """
-        Helper to create the debounce task from within the event loop thread.
-        This is intended to be invoked via loop.call_soon_threadsafe.
-        """
-        self._debounce_task = asyncio.create_task(self._debounce_loop())
-
-    def add_item(self, cate: str, name: str, item: dict, is_channel_last: bool = False, is_last: bool = False):
+    def add_item(self, cate: str, name: str, item: dict, is_channel_last: bool = False, is_last: bool = False,
+                 is_valid: bool = True):
         """
         Add a test result item for a specific category and name.
         """
         self.test_results[cate][name].append(item)
-        self._dirty = True
-        self._dirty_count += 1
         self.is_last = is_last
         self._pending_channels.add((cate, name))
 
         if is_channel_last:
-            self._finished_channels.add((cate, name))
-
-        try:
-            self.sort_logger.info(
-                f"Name: {name}, URL: {item.get('url')}, From: {item.get('origin')}, "
-                f"IPv_Type: {item.get('ipv_type')}, Location: {item.get('location')}, ISP: {item.get('isp')}, "
-                f"Date: {item.get('date')}, Delay: {item.get('delay') or -1} ms, "
-                f"Speed: {(item.get('speed') or 0):.2f} M/s, Resolution: {item.get('resolution')}"
-            )
-        except Exception:
-            pass
-
-        if is_channel_last:
             try:
+                self._finished_channels.add((cate, name))
                 generate_channel_statistic(self.stat_logger, cate, name, self.test_results[cate][name])
             except Exception:
                 pass
 
-        try:
-            loop = asyncio.get_running_loop()
-            self._ensure_debounce_task_in_loop(loop)
-            loop.call_soon(self._flush_event.set)
-        except RuntimeError:
-            try:
-                loop = asyncio.get_event_loop()
-                self._ensure_debounce_task_in_loop(loop)
-                loop.call_soon_threadsafe(self._flush_event.set)
-            except Exception:
-                pass
-
-        if self._dirty_count >= self._min_items_before_flush:
+        if is_valid and self.realtime_write:
+            self._dirty = True
+            self._dirty_count += 1
+            if self._dirty_count < self._min_items_before_flush:
+                return
             self._dirty_count = 0
+            try:
+                asyncio.get_running_loop()
+                self._flush_event.set()
+            except RuntimeError:
+                try:
+                    loop = asyncio.get_event_loop()
+                    loop.call_soon_threadsafe(self._flush_event.set)
+                except Exception:
+                    pass
 
     async def _atomic_write_sorted_view(
             self,
             test_copy: Dict[str, Dict[str, list]],
             affected: Optional[Set[Tuple[str, str]]] = None,
             finished: Optional[Set[Tuple[str, str]]] = None,
+            is_last: bool = False,
     ) -> None:
         """
         Atomic write of sorted view to file, either partially or fully.
         """
+        async with self._write_lock:
+            await self._write_sorted_view(test_copy, affected, finished, is_last)
+
+    async def _write_sorted_view(
+            self,
+            test_copy: Dict[str, Dict[str, list]],
+            affected: Optional[Set[Tuple[str, str]]] = None,
+            finished: Optional[Set[Tuple[str, str]]] = None,
+            is_last: bool = False,
+    ) -> None:
         if finished is None:
             finished = set()
 
@@ -179,12 +157,16 @@ class ResultAggregator:
                 new_sorted = defaultdict(lambda: defaultdict(list))
 
         merged = defaultdict(lambda: defaultdict(list))
-        for cate, names in self.result.items():
-            merged[cate].update({k: list(v) for k, v in names.items()})
+
+        for cate, names in self.base_data.items():
+            for name in names.keys():
+                merged[cate][name] = list(self.result.get(cate, {}).get(name, []))
 
         for cate, names in new_sorted.items():
+            if cate not in self.base_data:
+                continue
             for name, vals in names.items():
-                if vals:
+                if name in self.base_data.get(cate, {}) and vals:
                     merged[cate][name] = list(vals)
 
         loop = asyncio.get_running_loop()
@@ -195,29 +177,10 @@ class ResultAggregator:
             self.ipv6_support,
             self.first_channel_name,
             True,
-            self.is_last,
+            is_last,
         )
 
         self.result = merged
-
-    async def _debounce_loop(self):
-        """
-        Debounce loop to handle flush events.
-        """
-        self._debounce_task = asyncio.current_task()
-        try:
-            while not self._stopped:
-                await self._flush_event.wait()
-                try:
-                    await asyncio.sleep(self.flush_debounce)
-                except asyncio.CancelledError:
-                    raise
-                self._flush_event.clear()
-                if self._dirty:
-                    await self.flush_once()
-        finally:
-            self._debounce_task = None
-            self._flush_event.clear()
 
     async def flush_once(self, force: bool = False) -> None:
         """
@@ -226,23 +189,37 @@ class ResultAggregator:
         async with self._lock:
             if not self._dirty and not force:
                 return
-            test_copy = copy.deepcopy(self.test_results)
+
             pending = set(self._pending_channels)
             self._pending_channels.clear()
 
             if force:
+                test_copy = copy.deepcopy(self.test_results)
                 finished_for_flush = set(self._finished_channels)
                 self._finished_channels.clear()
             else:
+                test_copy = defaultdict(lambda: defaultdict(list))
+                for cate, name in pending:
+                    items = self.test_results.get(cate, {}).get(name, [])
+                    copied_items = [it.copy() if isinstance(it, dict) else it for it in items]
+                    if copied_items:
+                        test_copy[cate][name] = copied_items
+
                 finished_for_flush = set(self._finished_channels & pending)
                 self._finished_channels.difference_update(finished_for_flush)
 
             self._dirty = False
             self._dirty_count = 0
+            is_last_for_flush = self.is_last
 
         affected = None if force else (pending if pending else None)
         try:
-            await self._atomic_write_sorted_view(test_copy, affected=affected, finished=finished_for_flush)
+            await self._atomic_write_sorted_view(
+                test_copy,
+                affected=affected,
+                finished=finished_for_flush,
+                is_last=is_last_for_flush,
+            )
         except Exception:
             pass
 
@@ -250,41 +227,52 @@ class ResultAggregator:
         """
         Run the periodic flush loop.
         """
-        self._stopped = False
         try:
             while not self._stopped:
-                await asyncio.sleep(self.write_interval)
+                triggered = False
+                try:
+                    await asyncio.wait_for(self._flush_event.wait(), timeout=self.write_interval)
+                    triggered = True
+                except asyncio.TimeoutError:
+                    pass
+                if self._stopped:
+                    break
+                if triggered:
+                    await asyncio.sleep(self.flush_debounce)
+                    if self._stopped:
+                        break
+                self._flush_event.clear()
                 if self._dirty:
                     await self.flush_once()
         finally:
             self._stopped = True
+            self._flush_event.clear()
 
     async def start(self) -> None:
         """
         Start the aggregator's periodic flush loop.
         """
+        if not self.realtime_write:
+            self._stopped = False
+            return
         if self._task and not self._task.done():
             return
+        self._stopped = False
+        self._flush_event.clear()
         self._task = asyncio.create_task(self._run_loop())
-        loop = asyncio.get_running_loop()
-        self._ensure_debounce_task_in_loop(loop)
 
     async def stop(self) -> None:
         """
         Stop the aggregator and clean up resources.
         """
         self._stopped = True
+        self._flush_event.set()
         if self._task:
             await self._task
             self._task = None
-        if self._debounce_task:
-            self._debounce_task.cancel()
-            try:
-                await self._debounce_task
-            except asyncio.CancelledError:
-                pass
-            self._debounce_task = None
-        if self.sort_logger:
-            self.sort_logger.handlers.clear()
+        try:
+            await self.flush_once(force=True)
+        except Exception:
+            pass
         if self.stat_logger:
-            self.stat_logger.handlers.clear()
+            close_logger_handlers(self.stat_logger)
